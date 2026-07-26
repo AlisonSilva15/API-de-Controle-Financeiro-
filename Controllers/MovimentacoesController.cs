@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using FinancasApi.Data;
 using FinancasApi.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace FinancasApi.Controllers
 {
@@ -25,6 +26,27 @@ namespace FinancasApi.Controllers
            _appDbContext.Movimentacoes.Add(movimentacao);
            await   _appDbContext.SaveChangesAsync();
            return Ok(movimentacao);
+        }
+
+         [HttpGet]
+        public async Task<ActionResult<IEnumerable<Categoria>>> GetMovimentacoes()
+        {
+            var movimentacoes = await _appDbContext.Movimentacoes.ToListAsync();
+
+            return Ok(movimentacoes);
+        }
+
+         [HttpGet("{id}")]
+        public async Task<ActionResult<Categoria>> GetMovimentacao(int id)
+        {
+            var movimentacao = await _appDbContext.Movimentacoes.FindAsync(id);
+
+            if(movimentacao == null)
+            {
+                return NotFound ("Movimentação não encontrada!");
+            }
+
+            return Ok(movimentacao);
         }
     }
 }

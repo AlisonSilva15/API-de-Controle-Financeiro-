@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using FinancasApi.Data;
 using FinancasApi.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace FinancasApi.Controllers
 {
@@ -25,6 +26,26 @@ namespace FinancasApi.Controllers
            _appDbContext.Categorias.Add(categoria);
            await   _appDbContext.SaveChangesAsync();
            return Ok(categoria);
+        }
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Categoria>>> GetCategorias()
+        {
+            var categorias = await _appDbContext.Categorias.ToListAsync();
+
+            return Ok(categorias);
+        }
+
+         [HttpGet("{id}")]
+        public async Task<ActionResult<Categoria>> GetCategoria(int id)
+        {
+            var categoria = await _appDbContext.Categorias.FindAsync(id);
+
+            if(categoria == null)
+            {
+                return NotFound ("Categoria não encontrada!");
+            }
+
+            return Ok(categoria);
         }
     }
 }
