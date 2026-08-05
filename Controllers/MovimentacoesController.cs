@@ -21,11 +21,15 @@ namespace FinancasApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddMovimentacao(Movimentacao movimentacao)
+        public async Task<IActionResult> AddMovimentacao([FromBody]Movimentacao movimentacao)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
            _appDbContext.Movimentacoes.Add(movimentacao);
            await   _appDbContext.SaveChangesAsync();
-           return Ok(movimentacao);
+           return Created("Movimentação adicionada com sucesso!",movimentacao);
         }
 
          [HttpGet]
@@ -47,6 +51,37 @@ namespace FinancasApi.Controllers
             }
 
             return Ok(movimentacao);
+        }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateMovimentacao(int id, [FromBody] Movimentacao movimentacaoAtualizada)
+        {
+            var movimentacaoExistente = await _appDbContext.Movimentacoes.FindAsync(id);
+
+             if(movimentacaoExistente == null)
+            {
+                return NotFound ("Movimentacação não encontrada!");
+            }
+            _appDbContext.Entry(movimentacaoExistente).CurrentValues.SetValues(movimentacaoAtualizada);
+
+             await   _appDbContext.SaveChangesAsync();
+
+             return StatusCode(201, movimentacaoExistente);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteMovimentacao(int id)
+        {
+            var movimentacao = await _appDbContext.Movimentacoes.FindAsync(id);
+
+             if(movimentacao == null)
+            {
+                return NotFound ("Movimentacao não encontrada!");
+            }
+            _appDbContext.Movimentacoes.Remove(movimentacao);
+
+             await   _appDbContext.SaveChangesAsync();
+
+             return Ok("Movimentação deletada com sucesso!");
         }
     }
 }

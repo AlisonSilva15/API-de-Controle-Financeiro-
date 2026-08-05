@@ -21,11 +21,15 @@ namespace FinancasApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddCategoria(Categoria categoria)
+        public async Task<IActionResult> AddCategoria([FromBody]Categoria categoria)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
            _appDbContext.Categorias.Add(categoria);
            await   _appDbContext.SaveChangesAsync();
-           return Ok(categoria);
+           return Created("Categoria adicionada com sucesso!",categoria);
         }
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Categoria>>> GetCategorias()
@@ -46,6 +50,38 @@ namespace FinancasApi.Controllers
             }
 
             return Ok(categoria);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateCategoria(int id, [FromBody] Categoria categoriaAtualizada)
+        {
+            var categoriaExistente = await _appDbContext.Categorias.FindAsync(id);
+
+             if(categoriaExistente == null)
+            {
+                return NotFound ("Categoria não encontrada!");
+            }
+            _appDbContext.Entry(categoriaExistente).CurrentValues.SetValues(categoriaAtualizada);
+
+             await   _appDbContext.SaveChangesAsync();
+
+             return StatusCode(201, categoriaExistente);
+        }
+
+         [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteCategoria(int id)
+        {
+            var categoria = await _appDbContext.Categorias.FindAsync(id);
+
+             if(categoria == null)
+            {
+                return NotFound ("Categoria não encontrada!");
+            }
+            _appDbContext.Categorias.Remove(categoria);
+
+             await   _appDbContext.SaveChangesAsync();
+
+             return Ok("Categoria deletada com sucesso!");
         }
     }
 }
