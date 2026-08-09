@@ -65,7 +65,7 @@ namespace FinancasApi.Controllers
 
              await   _appDbContext.SaveChangesAsync();
 
-             return StatusCode(201, movimentacaoExistente);
+             return   Ok(movimentacaoExistente);
         }
 
         [HttpDelete("{id}")]
