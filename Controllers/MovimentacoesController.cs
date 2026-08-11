@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using FinancasApi.Data;
 using FinancasApi.Models;
+using FinancasApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,75 +14,72 @@ namespace FinancasApi.Controllers
     [Route("api/[controller]")]
     public class MovimentacoesController : ControllerBase
     {
-        private readonly AppDbContext _appDbContext;
+        private readonly IMovimentacaoService _movimentacaoService;
 
-        public MovimentacoesController(AppDbContext appDbContext)
+        public MovimentacoesController(IMovimentacaoService movimentacaoService)
         {
-            _appDbContext = appDbContext;
+            _movimentacaoService = movimentacaoService;
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddMovimentacao([FromBody]Movimentacao movimentacao)
+        public async Task<IActionResult> AddMovimentacao([FromBody] Movimentacao movimentacao)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-           _appDbContext.Movimentacoes.Add(movimentacao);
-           await   _appDbContext.SaveChangesAsync();
-           return Created("Movimentação adicionada com sucesso!",movimentacao);
+
+            var movimentacaoCriada = await _movimentacaoService.AddMovimentacao(movimentacao);
+
+            return StatusCode(201, movimentacaoCriada);
         }
 
-         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Categoria>>> GetMovimentacoes()
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Movimentacao>>> GetMovimentacoes()
         {
-            var movimentacoes = await _appDbContext.Movimentacoes.ToListAsync();
+            var movimentacoes = await _movimentacaoService.GetMovimentacoes();
 
             return Ok(movimentacoes);
         }
 
-         [HttpGet("{id}")]
-        public async Task<ActionResult<Categoria>> GetMovimentacao(int id)
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Movimentacao>> GetMovimentacao(int id)
         {
-            var movimentacao = await _appDbContext.Movimentacoes.FindAsync(id);
+            var movimentacao = await _movimentacaoService.GetMovimentacao(id);
 
-            if(movimentacao == null)
+            if (movimentacao == null)
             {
-                return NotFound ("Movimentação não encontrada!");
+                return NotFound("Movimentação não encontrada!");
             }
 
             return Ok(movimentacao);
         }
+
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateMovimentacao(int id, [FromBody] Movimentacao movimentacaoAtualizada)
         {
-            var movimentacaoExistente = await _appDbContext.Movimentacoes.FindAsync(id);
+            var movimentacao = await _movimentacaoService
+                .UpdateMovimentacao(id, movimentacaoAtualizada);
 
-             if(movimentacaoExistente == null)
+            if (movimentacao == null)
             {
-                return NotFound ("Movimentacação não encontrada!");
+                return NotFound("Movimentacao não encontrada!");
             }
-            _appDbContext.Entry(movimentacaoExistente).CurrentValues.SetValues(movimentacaoAtualizada);
 
-             await   _appDbContext.SaveChangesAsync();
-
-             return   Ok(movimentacaoExistente);
+            return Ok(movimentacao);
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteMovimentacao(int id)
         {
-            var movimentacao = await _appDbContext.Movimentacoes.FindAsync(id);
+            var deletado = await _movimentacaoService.DeleteMovimentacao(id);
 
-             if(movimentacao == null)
+            if (!deletado)
             {
-                return NotFound ("Movimentacao não encontrada!");
+                return NotFound("Movimentação não encontrada!");
             }
-            _appDbContext.Movimentacoes.Remove(movimentacao);
 
-             await   _appDbContext.SaveChangesAsync();
-
-             return Ok("Movimentação deletada com sucesso!");
+            return Ok("Movimentação deletada com sucesso!");
         }
     }
 }
