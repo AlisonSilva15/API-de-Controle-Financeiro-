@@ -1,4 +1,5 @@
 using FinancasApi.Data;
+using FinancasApi.DTOs;
 using FinancasApi.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,18 +14,42 @@ namespace FinancasApi.Services
             _appDbContext = appDbContext;
         }
 
-        public async Task<List<Categoria>> GetCategorias()
+        public async Task<List<CategoriaResponseDto>> GetCategorias()
         {
-            return await _appDbContext.Categorias.ToListAsync();
+            var categorias = await _appDbContext.Categorias.ToListAsync();
+
+            return categorias.Select(categoria => new CategoriaResponseDto
+            {
+                Id = categoria.Id,
+                Nome = categoria.Nome,
+                Tipo = categoria.Tipo
+            }).ToList();
         }
 
-        public async Task<Categoria?> GetCategoria(int id)
+        public async Task<CategoriaResponseDto?> GetCategoria(int id)
         {
-            return await _appDbContext.Categorias.FindAsync(id);
-        }
+            var categoria = await _appDbContext.Categorias.FindAsync(id);
 
-        public async Task<Categoria> AddCategoria(Categoria categoria)
+            if (categoria == null)
+            {
+                return null;
+            }
+
+            return new CategoriaResponseDto
+            {
+                Id = categoria.Id,
+                Nome = categoria.Nome,
+                Tipo = categoria.Tipo
+            };
+        }
+        public async Task<Categoria> AddCategoria(CategoriaCreateDto categoriaDto)
         {
+            var categoria = new Categoria
+            {
+                Nome = categoriaDto.Nome,
+                Tipo = categoriaDto.Tipo
+            };
+
             _appDbContext.Categorias.Add(categoria);
 
             await _appDbContext.SaveChangesAsync();
@@ -66,7 +91,7 @@ namespace FinancasApi.Services
             return true;
         }
 
-      
+
 
     }
 }

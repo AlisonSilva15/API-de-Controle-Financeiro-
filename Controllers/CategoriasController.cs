@@ -7,6 +7,7 @@ using FinancasApi.Models;
 using FinancasApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using FinancasApi.DTOs;
 
 namespace FinancasApi.Controllers
 {
@@ -22,20 +23,20 @@ namespace FinancasApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddCategoria([FromBody] Categoria categoria)
+        public async Task<IActionResult> AddCategoria([FromBody] CategoriaCreateDto categoriaDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var categoriaCriada = await _categoriaService.AddCategoria(categoria);
+            var categoriaCriada = await _categoriaService.AddCategoria(categoriaDto);
 
-            return Created("Categoria adicionada com sucesso!", categoria);
+            return Created("Categoria adicionada com sucesso!", categoriaCriada);
         }
-        
+
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Categoria>>> GetCategorias()
+        public async Task<ActionResult<IEnumerable<CategoriaResponseDto>>> GetCategorias()
         {
             var categorias = await _categoriaService.GetCategorias();
 
@@ -43,7 +44,7 @@ namespace FinancasApi.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Categoria>> GetCategoria(int id)
+        public async Task<ActionResult<CategoriaResponseDto>> GetCategoria(int id)
         {
             var categoria = await _categoriaService.GetCategoria(id);
 
